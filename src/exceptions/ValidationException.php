@@ -1,5 +1,5 @@
 <?php
-    namespace uniquexor\yii2helpers\exceptions;
+    namespace unique\yii2helpers\exceptions;
 
     /**
      * Class ValidationException.

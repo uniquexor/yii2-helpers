@@ -1,5 +1,5 @@
 <?php
-    namespace uniquexor\yii2helpers\validators;
+    namespace unique\yii2helpers\validators;
 
     /**
      * Additional functionality for yii2 DateValidator:
