@@ -48,7 +48,7 @@
          * A string to prepend to a new line.
          * @var string
          */
-        public string $prepend_line = '[<datetime:Y-m-d H:i:s>] ';
+        public string $prepend_line = '[<date:Y-m-d H:i:s>] ';
 
         /**
          * Styles to use for {@see logSuccess()}, {@see logError()} and {@see logWarning()} methods.
@@ -118,7 +118,7 @@
         protected function formatLinePrepend( ): string {
 
             $string = $this->prepend_line;
-            if ( preg_match( '/<date:([^]])+>/', $string, $matches ) ) {
+            if ( preg_match( '/<date:([^]]+)>/', $string, $matches ) ) {
 
                 $string = str_replace( $matches[0], date( $matches[1] ), $string );
             }
