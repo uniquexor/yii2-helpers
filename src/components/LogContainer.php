@@ -1,5 +1,5 @@
 <?php
-    namespace unique\yii2helpers;
+    namespace unique\yii2helpers\components;
 
     use unique\events\interfaces\EventHandlingInterface;
     use unique\events\traits\EventTrait;
