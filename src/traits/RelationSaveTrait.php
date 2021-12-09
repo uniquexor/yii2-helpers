@@ -19,11 +19,10 @@
          * 6. If all models saved correctly, delete expired $existing_models models and return
          *    Else, throw AbortSavingException with modified $relation_model_data.
          *
-         * If $error_field is provided, all relational model errors will also be set on the main ($this) model. Generated errors, will have keys that follow
-         * this structure: "$error_field.$key.$attribute", where:
-         * - $error_field - Your value provided;
-         * - $key - is the key from $relation_model_data array, that was attempted to be save;
-         * - $attribute - the attribute, violating the relational model's rule.
+         * If $error_field is provided, all relational model errors will also be set on the main ($this) model.
+         * Template variables can be used, for example: "custom_field.[key].[attribute]", where:
+         * - $key - the key from $relation_model_data array, that was being saved;
+         * - $attribute - the relational data attribute, violating it's model rule.
          *
          * @param ActiveRecord[] $existing_models - An associated array of Models, using primary keys of related data that is currently in DB.
          * @param array $relation_model_data - An array of data, to be assigned to models.
@@ -87,7 +86,8 @@
 
                             foreach ( $errors as $error ) {
 
-                                $this->addError( $error_field . '.' . $key . '.' . $attribute, $error );
+                                $error_key = str_replace( [ '[key]', '[attribute]' ], [ $key, $attribute ], $error_field );
+                                $this->addError( $error_key, $error );
                             }
                         }
                     }
