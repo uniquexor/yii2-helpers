@@ -10,6 +10,45 @@
     trait RelationSaveTrait {
 
         /**
+         * Used when relational table is a junction table, that has only keys.
+         * For example:
+         * If we have a Company object, that contains all Employee ids in an attribute called `employee_ids`,
+         * we might have a table `company_employees` ( int company_id, int employee_id ).
+         * In this case, we can call:
+         * ```
+         * $this->saveRelationByIds(
+         *      [ an array of Employee ActiveRecord models currently in DB, indexed by id ],
+         *      [ an array of employee ids ],
+         *      CompanyEmployee::class,
+         *      'company_id',
+         *      'employee_ids',
+         *      'employee_id',
+         * );
+         * ```
+         *
+         * @param ActiveRecord[] $existing_models - An associated array of Models, using primary keys of related data that is currently in DB.
+         * @param array $ids - An array of foreign .
+         * @param string $relation_class - A class of relational model
+         * @param string|array $foreign_key - Foreign keys in the relation model, i.e.: 'part_id' or [ 'part_id' => 'id' ]
+         * @param string|null $error_field - If provided, this key will be used to when calling $this->addError().
+         * @param string $relation_key -
+         * @throws AbortSavingException
+         * @throws \Throwable
+         * @throws \yii\db\StaleObjectException
+         */
+        public function saveRelationByIds( $existing_models, $ids, $relation_class, $foreign_key, ?string $error_field, string $relation_key ) {
+
+            $relation_model_data = [];
+            foreach ( $ids as $id ) {
+
+                $key = $relation_key;
+                $relation_model_data[] = [ $key => $id ];
+            }
+
+            $this->saveRelation( $existing_models, $relation_model_data, $relation_class, $foreign_key, $error_field, $relation_key );
+        }
+
+        /**
          * Saves related data.
          * 1. Iterate through $relation_model_data
          * 2. Check if data primary ID is found in $existing_models, if so use it, else create a new model.
@@ -29,13 +68,13 @@
          * @param string $relation_class - A class of relational model
          * @param string|array $foreign_key - Foreign keys in the relation model, i.e.: 'part_id' or [ 'part_id' => 'id' ]
          * @param string|null $error_field - If provided, this key will be used to when calling $this->addError().
-         * @param string|null $model_key - The attribute to use as a primary key. If not specified $this->primaryKey() is used.
+         * @param string|null $relation_key - The attribute to use as a primary key. If not specified $this->primaryKey() is used.
          *                                 Aggregate keys can be used by separating them with comma (needs to be tested, lol :D)
          * @throws AbortSavingException
          * @throws \Throwable
          * @throws \yii\db\StaleObjectException
          */
-        public function saveRelation( $existing_models, $relation_model_data, $relation_class, $foreign_key, ?string $error_field, ?string $model_key = null ) {
+        public function saveRelation( $existing_models, $relation_model_data, $relation_class, $foreign_key, ?string $error_field, ?string $relation_key = null ) {
 
             $has_errors = false;
             if ( !is_array( $foreign_key ) ) {
@@ -49,12 +88,12 @@
                  * @var ActiveRecord $model
                  */
                 $model = new $relation_class();
-                if ( $model_key === null ) {
+                if ( $relation_key === null ) {
 
                     $primary_key = implode( ',', $model->primaryKey() );
                 } else {
 
-                    $primary_key = $model_key;
+                    $primary_key = $relation_key;
                 }
 
                 if ( isset( $model_data[ $primary_key ] ) && isset( $existing_models[ $model_data[ $primary_key ] ] ) ) {
