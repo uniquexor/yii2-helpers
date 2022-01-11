@@ -18,19 +18,24 @@
 
             if ( is_array( $this->format ) ) {
 
-                foreach ( $this->format as $format ) {
+                $formats = $this->format;
 
-                    $res = $this->parseDateValueFormat( $value, $format );
+                foreach ( $formats as $format ) {
+
+                    $this->format = $format;
+                    $res = parent::parseDateValue( $value );
                     if ( $res !== false ) {
 
+                        $this->format = $formats;
                         return $res;
                     }
                 }
 
+                $this->format = $formats;
                 return false;
             } else {
 
-                return $this->parseDateValueFormat( $value, $this->format );
+                return parent::parseDateValue( $value );
             }
         }
     }
