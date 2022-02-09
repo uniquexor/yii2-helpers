@@ -11,22 +11,34 @@
 
         public function save( $runValidation = true, $attributeNames = null ) {
 
-            $transaction = \Yii::$app->db->beginTransaction();
+            $transaction = null;
+            if ( \Yii::$app->db->getTransaction() === null ) {
+
+                $transaction = \Yii::$app->db->beginTransaction();
+            }
+
             $res = false;
 
             try {
 
                 $res = parent::save( $runValidation, $attributeNames );
-                if ( $res ) {
+                if ( $transaction ) {
 
-                    $transaction->commit();
-                } else {
+                    if ( $res ) {
 
-                    $transaction->rollBack();
+                        $transaction->commit();
+                    } else {
+
+                        $transaction->rollBack();
+                    }
                 }
             } catch ( \Throwable $exception ) {
 
-                $transaction->rollBack();
+                if ( $transaction ) {
+
+                    $transaction->rollBack();
+                }
+
                 if ( !( $exception instanceof AbortSavingException ) ) {
 
                     throw $exception;
