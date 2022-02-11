@@ -1,16 +1,14 @@
 <?php
     namespace unique\yii2helpers\traits;
 
-    use unique\yii2helpers\exceptions\AbortSavingException;
-
     /**
-     * Adds transactional save functionality
-     * All save operations will be executed in a transaction.
+     * Adds transactional delete functionality
+     * All delete operations will be executed in a transaction.
      * If a transaction has already started, does not start a new one.
      */
-    trait TransactionalSaveTrait {
+    trait TransactionalDeleteTrait {
 
-        public function save( $runValidation = true, $attributeNames = null ) {
+        public function delete() {
 
             $transaction = null;
             if ( \Yii::$app->db->getTransaction() === null ) {
@@ -22,7 +20,7 @@
 
             try {
 
-                $res = parent::save( $runValidation, $attributeNames );
+                $res = parent::delete();
                 if ( $transaction ) {
 
                     if ( $res ) {
@@ -40,10 +38,7 @@
                     $transaction->rollBack();
                 }
 
-                if ( !( $exception instanceof AbortSavingException ) ) {
-
-                    throw $exception;
-                }
+                throw $exception;
             }
 
             return $res;
