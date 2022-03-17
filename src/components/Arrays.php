@@ -1,5 +1,5 @@
 <?php
-    namespace unique\yii2helpers\;
+    namespace unique\yii2helpers;
 
     use Closure;
     use Exception;
