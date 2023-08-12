@@ -192,5 +192,8 @@
 
                 $this->saveRelation( $sender, $relation_name, $attribute_name );
             }
+
+            // Let's update the form attribute to reflect the saved data:
+            $this->afterFind( $event );
         }
     }
