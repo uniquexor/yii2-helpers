@@ -52,10 +52,19 @@
          * ```php
          * We make sure that all related tags from ContactTags will be loaded when a model is loaded and
          * when saving ContactTag models will be created for every data entry found in `Contact::$contact_tags` attribute.
+         *
+         * Can also be configured as:
+         * ```php
+         * $relations[ 'contact_tags' ] = [
+         *    'name' => 'contactTags',
+         *    'before_save' => function ( $parent_model ) { return $parent_model->contactTagsNeedsSaving(); }
+         * ]
+         * ```php
+         * This way we can specify additional before_save callback to check if the relational models need to be saved.
          * @var array
          */
         public array $relations = [
-            // model attribute => relation name
+            // model attribute => (string) relation name || (array) [ 'name' => relation name, 'before_save' => callable( parent_model ) ]
         ];
 
         /**
@@ -167,8 +176,9 @@
             $sender = $event->sender;
             $serializer = new Serializer();
 
-            foreach ( $this->relations as $attribute_name => $relation_name ) {
+            foreach ( $this->relations as $attribute_name => $relation ) {
 
+                $relation_name = is_array( $relation ) ? $relation['name'] : $relation;
                 $sender->$attribute_name = $serializer->serialize( $sender->$relation_name );
             }
         }
@@ -188,9 +198,19 @@
              */
             $sender = $event->sender;
 
-            foreach ( $this->relations as $attribute_name => $relation_name ) {
+            foreach ( $this->relations as $attribute_name => $relation ) {
 
-                $this->saveRelation( $sender, $relation_name, $attribute_name );
+                if ( !is_array( $relation ) ) {
+
+                    $relation = [ 'name' => $relation ];
+                }
+
+                if ( isset( $relation['before_save'] ) && call_user_func( $relation['before_save'], $sender ) === false ) {
+
+                    continue;
+                }
+
+                $this->saveRelation( $sender, $relation['name'], $attribute_name );
             }
 
             // Let's update the form attribute to reflect the saved data:

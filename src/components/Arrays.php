@@ -82,6 +82,36 @@
         }
 
         /**
+         * Paima reikšmę iš masyvo pagal nurodytą kelią.
+         * @param array $array
+         * @param string $path
+         * @return mixed|null
+         */
+        public static function getArrayValue( $array, string $path ) {
+
+            if ( !$path ) {
+
+                return $array;
+            }
+
+            $keys = explode( '.', $path );
+            $key = array_shift( $keys );
+
+            if ( !isset( $array[ $key ] ) ) {
+
+                return null;
+            }
+
+            if ( $keys ) {
+
+                return self::getArrayValue( $array[ $key ], implode( '.', $keys ) );
+            } else {
+
+                return $array[ $key ];
+            }
+        }
+
+        /**
          * Pagal nurodytą kelią sukuria asociatyvų masyvą.
          * $path kintamasis nusako kokia turėtų būti struktūra naujojo masyvo. Nauja dimensija atskiriama `.` simboliu.
          * Jeigu $path bus tuščias, bus gražintas $array masyvas.
