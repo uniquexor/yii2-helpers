@@ -3,6 +3,7 @@
 
     use Closure;
     use Exception;
+    use unique\yii2helpers\exceptions\KeyNotSetException;
 
     /**
      * Array helper.
@@ -85,9 +86,11 @@
          * Paima reikšmę iš masyvo pagal nurodytą kelią.
          * @param array $array
          * @param string $path
+         * @param bool $exception_when_no_key
          * @return mixed|null
+         * @throws KeyNotSetException
          */
-        public static function getArrayValue( $array, string $path ) {
+        public static function getArrayValue( $array, string $path, bool $exception_when_no_key = false ) {
 
             if ( !$path ) {
 
@@ -97,7 +100,16 @@
             $keys = explode( '.', $path );
             $key = array_shift( $keys );
 
-            if ( !isset( $array[ $key ] ) ) {
+            if ( !array_key_exists( $key, $array ) ) {
+
+                if ( $exception_when_no_key ) {
+
+                    throw new KeyNotSetException( 'Key `' . $key . '` not found in array' );
+                } else {
+
+                    return null;
+                }
+            } elseif ( $array[ $key ] === null ) {
 
                 return null;
             }
