@@ -1,5 +1,5 @@
 <?php
-    namespace app\components;
+    namespace unique\yii2helpers\components;
 
     use yii\base\Component;
     use yii\base\Model;
