@@ -40,13 +40,13 @@
                 if ( $transaction ) {
 
                     $transaction->rollBack();
-                }
 
-                if ( $is_new_record ) {
+                    if ( $is_new_record ) {
 
-                    // If saving failed, we need to restore model's state
-                    $this->isNewRecord = $is_new_record;
-                    $this->setAttributes( $primary_keys, false );
+                        // If saving failed, we need to restore model's state
+                        $this->isNewRecord = $is_new_record;
+                        $this->setAttributes( $primary_keys, false );
+                    }
                 }
 
                 if ( !( $exception instanceof AbortSavingException ) ) {
