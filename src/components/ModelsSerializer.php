@@ -14,12 +14,12 @@
 
         /**
          * Serializes an array of Models, passing given $fields and $expand option.
-         * @param Model[] $models
+         * @param Model[]|\Generator<Model> $models
          * @param array $fields
          * @param array $expand
          * @return array
          */
-        public function serialize( array $models, array $fields = [], array $expand = [] ): array {
+        public function serialize( array|\Generator $models, array $fields = [], array $expand = [] ): array {
 
             $list = [];
             foreach ( $models as $key => $model ) {
