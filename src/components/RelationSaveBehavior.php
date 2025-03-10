@@ -103,12 +103,12 @@
          * @param ActiveRecord $model - The model that is being saved.
          * @param string $relation_name - A Has-Many Relation's name. If the relation method is 'getContactTags()', then name will be 'contactTags'
          * @param string $attribute - Attribute name in the model, where all the relational data is found.
-         * @return array
+         * @return array|ActiveRecord
          * @throws AbortSavingException
          * @throws \Throwable
          * @throws \yii\db\StaleObjectException
          */
-        public function saveRelation( ActiveRecord $model, string $relation_name, string $attribute ): array {
+        public function saveRelation( ActiveRecord $model, string $relation_name, string $attribute ): mixed {
 
             $relation = $model->getRelation( $relation_name );
             $model_class = $relation->modelClass;
@@ -118,8 +118,8 @@
                 ->indexBy( fn( $row ) => $this->composeKey( $row->toArray(), $relation_primary_keys ) )
                 ->all();
 
-            $updated_models = [];
 
+            $updated_models = $relation->multiple ? [] : null;
             $model_data = $relation->multiple ? $model->$attribute : [ $model->$attribute ];
 
             foreach ( $model_data as $item_data ) {
@@ -148,11 +148,25 @@
                     if ( !$related_model->save() ) {
 
                         $model->addErrors( [ $attribute => $related_model->getFirstErrors() ] );
+                        if ( !$relation->multiple ) {
+
+                            foreach ( $related_model->getFirstErrors() as $attr => $error ) {
+
+                                $model->addError( $attribute . '.' . $attr, $error );
+                            }
+                        }
+
                         throw new AbortSavingException( 'Save aborted' );
                     }
                 }
 
-                $updated_models[] = $related_model;
+                if ( $relation->multiple ) {
+
+                    $updated_models[] = $related_model;
+                } else {
+
+                    $updated_models = $related_model;
+                }
             }
 
             foreach ( $existing_data as $related_model ) {
