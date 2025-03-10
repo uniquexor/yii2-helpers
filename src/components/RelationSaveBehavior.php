@@ -120,9 +120,11 @@
 
             $updated_models = [];
 
-            foreach ( $model->$attribute as $item ) {
+            $model_data = $relation->multiple ? $model->$attribute : [ $model->$attribute ];
 
-                $composite_key = $this->composeKey( $item, $relation_primary_keys );
+            foreach ( $model_data as $item_data ) {
+
+                $composite_key = $this->composeKey( $item_data, $relation_primary_keys );
                 if ( !isset( $existing_data[ $composite_key ] ) ) {
 
                     $related_model = new $model_class;
@@ -132,7 +134,7 @@
                     unset( $existing_data[ $composite_key ] );
                 }
 
-                $related_model->setAttributes( $item );
+                $related_model->setAttributes( $item_data );
                 if ( $related_model->getDirtyAttributes() ) {
 
                     if ( $related_model->isNewRecord ) {
