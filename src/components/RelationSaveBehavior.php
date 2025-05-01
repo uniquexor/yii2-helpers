@@ -122,7 +122,7 @@
             $updated_models = $relation->multiple ? [] : null;
             $model_data = $relation->multiple ? $model->$attribute : [ $model->$attribute ];
 
-            foreach ( $model_data as $item_data ) {
+            foreach ( $model_data as $index => $item_data ) {
 
                 $composite_key = $this->composeKey( $item_data, $relation_primary_keys );
                 if ( !isset( $existing_data[ $composite_key ] ) ) {
@@ -153,6 +153,12 @@
                             foreach ( $related_model->getFirstErrors() as $attr => $error ) {
 
                                 $model->addError( $attribute . '.' . $attr, $error );
+                            }
+                        } else {
+
+                            foreach ( $related_model->getFirstErrors() as $attr => $error ) {
+
+                                $model->addError( $attribute . '.' . $index . '.' . $attr, $error );
                             }
                         }
 
