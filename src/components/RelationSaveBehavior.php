@@ -223,12 +223,12 @@
                     $expand = $relation['serialize_expand'] ?? [];
                 }
 
-                if ( is_iterable( $sender->$relation_name ) ) {
+                $object = $sender->$relation_name;
+                if ( is_array( $object ) || $object instanceof \Iterator ) {
 
-                    $sender->$attribute_name = $serializer->serialize( $sender->$relation_name, $fields, $expand );
+                    $sender->$attribute_name = $serializer->serialize( $object, $fields, $expand );
                 } else {
 
-                    $object = $sender->$relation_name;
                     if ( $object instanceof Arrayable )  {
 
                         $sender->$attribute_name = $object->toArray( $fields, $expand );
