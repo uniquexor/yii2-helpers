@@ -2,6 +2,7 @@
     namespace unique\yii2helpers\components;
 
     use unique\yii2helpers\exceptions\AbortSavingException;
+    use yii\base\Arrayable;
     use yii\base\Behavior;
     use yii\base\Event;
     use yii\db\ActiveRecord;
@@ -53,18 +54,30 @@
          * We make sure that all related tags from ContactTags will be loaded when a model is loaded and
          * when saving ContactTag models will be created for every data entry found in `Contact::$contact_tags` attribute.
          *
-         * Can also be configured as:
+         * Relations can also be customized as follows:
          * ```php
          * $relations[ 'contact_tags' ] = [
          *    'name' => 'contactTags',
+         *    'serialize_fields' => [ ... ],
+         *    'serialize_expand' => [ ... ],
          *    'before_save' => function ( $parent_model ) { return $parent_model->contactTagsNeedsSaving(); }
          * ]
          * ```php
-         * This way we can specify additional before_save callback to check if the relational models need to be saved.
-         * @var array
+         * Here, in addition to relation name, we specify "serialize_fields", "serialize_expand" - options to be used when serializing data in afterFind() method.
+         * Also, we can specify a "before_save" callback to check if the relational models need to be saved.
+         * @var string[]|array{ array{ name: string, serialize_fields: array, serialize_expand: array, before_save: callable}}
          */
         public array $relations = [
-            // model attribute => (string) relation name || (array) [ 'name' => relation name, 'before_save' => callable( parent_model ) ]
+            /**
+             * model attribute => (string) relation name,
+             * ...or...
+             * model attribute => [
+             *      'name' => relation name,
+             *      'serialize_fields' => [ ... ],
+             *      'serialize_expand' => [ ... ],
+             *      'before_save' => callable( parent_model ),
+             * ]
+             */
         ];
 
         /**
@@ -196,12 +209,34 @@
              * @var ActiveRecord $sender
              */
             $sender = $event->sender;
-            $serializer = new Serializer();
+            $serializer = ModelsSerializer::instance();
 
             foreach ( $this->relations as $attribute_name => $relation ) {
 
-                $relation_name = is_array( $relation ) ? $relation['name'] : $relation;
-                $sender->$attribute_name = $serializer->serialize( $sender->$relation_name );
+                $relation_name = $relation;
+                $fields = $expand = [];
+
+                if ( is_array( $relation ) ) {
+
+                    $relation_name = $relation['name'];
+                    $fields = $relation['serialize_fields'] ?? [];
+                    $expand = $relation['serialize_expand'] ?? [];
+                }
+
+                if ( is_iterable( $sender->$relation_name ) ) {
+
+                    $sender->$attribute_name = $serializer->serialize( $sender->$relation_name, $fields, $expand );
+                } else {
+
+                    $object = $sender->$relation_name;
+                    if ( $object instanceof Arrayable )  {
+
+                        $sender->$attribute_name = $object->toArray( $fields, $expand );
+                    } else {
+
+                        throw new \Exception( 'Relation `' . $relation_name . '` is not an arrayable object' );
+                    }
+                }
             }
         }
 
