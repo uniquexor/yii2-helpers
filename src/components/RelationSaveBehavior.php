@@ -267,7 +267,12 @@
                     continue;
                 }
 
-                $this->saveRelation( $sender, $relation['name'], $attribute_name );
+                $updated_models = $this->saveRelation( $sender, $relation['name'], $attribute_name );
+
+                if ( isset( $relation['after_save'] ) ) {
+
+                    call_user_func( $relation['after_save'], $sender, $updated_models );
+                }
             }
 
             // Let's update the form attribute to reflect the saved data:
